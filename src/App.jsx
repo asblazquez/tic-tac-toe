@@ -1,32 +1,79 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
 import './App.css'
+import confetti from 'canvas-confetti'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [board, setBoard] = useState(Array(9).fill(null));
+  const [currentPlayer, setCurrentPlayer] = useState('X');
+  const [winner, setWinner] = useState(null);
+  const [empate, setEmpate] = useState(null);
+
+
+  function handleClick(index) {
+    if (winner) return;
+    if (board[index]) return;
+
+    const newBoard = [...board];
+    newBoard[index] = currentPlayer;
+    setBoard(newBoard);
+
+    const winningCombos = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6]
+    ];
+
+    for (let i = 0; i < winningCombos.length; i++) {
+      const [a, b, c] = winningCombos[i];
+      if (newBoard[a] && newBoard[a] === newBoard[b] && newBoard[a] === newBoard[c]) {
+        setWinner(currentPlayer);
+        confetti()
+        return;
+      } else if (newBoard.find(item => { return (item == null) }) === undefined && winner) {
+        setEmpate(true)
+      }
+    }
+
+    setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X');
+  }
+
+  function renderSquare(index) {
+    return (
+      <button className='casillas'
+        key={index}
+        onClick={() => handleClick(index)}>
+        {board[index] || ' '}
+      </button>
+    );
+  }
+
+  function resetBoard() {
+    setBoard(Array(9).fill(null));
+    setWinner(null)
+    setEmpate(null)
+  }
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div>
+      <h1 className='text-white'>Tic Tac Toe</h1>
+      <div className='tablero'>
+        {board.map((_, index) => {
+          return (
+            renderSquare(index)
+          )
+        })}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <button className='reset'
+        onClick={resetBoard}>
+        Reset
+      </button>
+      {winner && <h2 className='text-white'>EL ganador es: {winner}</h2>}
+      {empate && <h2 className='text-white'>Hay un epmate</h2>}
     </div>
   )
 }
